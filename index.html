@@ -1,1 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Cell Theory | NYC</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        /* Base styles - Brutalist/Minimalist */
+        :root {
+            --primary-color: #121212;
+            --secondary-color: #333333;
+            --accent-color: #757575;
+            --background-color: #f2f2f2;
+            --text-color: #121212;
+            --border-color: #121212;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            max-width: 1400px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        a {
+            color: var(--text-color);
+            text-decoration: none;
+            border-bottom: 1px solid var(--text-color);
+            transition: background-color 0.2s;
+            padding: 0 2px;
+        }
+        
+        a:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        h1, h2, h3 {
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Layout */
+        .container {
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            max-width: 600px;
+            margin-bottom: 5px;
+        }
+        
+        /* Map section */
+        .map-section {
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid var(--border-color);
+            margin: 30px 0;
+        }
+        
+        /* Essay section */
+        .essay-section {
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .essay-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .essay-section h2:after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--border-color);
+        }
+        
+        .essay-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .essay-content p {
+            margin-bottom: 20px;
+        }
+        
+        /* Footer */
+        footer {
+            padding: 30px 20px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        
+        /* Map Elements */
+        .custom-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--text-color);
+            border-radius: 0;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 0;
+            background-color: white;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .leaflet-popup-tip {
+            background-color: white;
+        }
+        
+        .receptor-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid black;
+        }
+        
+        /* Receptor types */
+        .port .receptor-dot {
+            background-color: #3498db;
+        }
+        
+        .airport .receptor-dot {
+            background-color: #e74c3c;
+        }
+        
+        .station .receptor-dot {
+            background-color: #2ecc71;
+        }
+        
+        .highway .receptor-dot {
+            background-color: #f39c12;
+        }
+        
+        /* Legend */
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .legend h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .legend-item {
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>URBAN CELL THEORY</h1>
+        <p>NEW YORK CITY AS A CELLULAR ORGANISM</p>
+        <p>A framework for redefining city boundaries through a biological lens</p>
+    </header>
 
+    <section class="map-section">
+        <h2>NYC CELLULAR STRUCTURE</h2>
+        <p>Explore the boundaries, receptor sites, and metabolic flows of New York City's urban cell</p>
+        
+        <div id="map" class="map-container"></div>
+        
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize map centered on NYC
+                var map = L.map('map').setView([40.7128, -74.0060], 11);
+                
+                // Add base map layer
+                L.tileLayer('https://{s}.tile.jawg.io/jawg-light/{z}/{x}/{y}{r}.png?access-token=HllAfjj3pONjq3ZOwIpPVIaDDqmBCT5HCEV7BGaC5sfMZSc7ZKVXkwVOex0cpBL1', {
+                    attribution: '&copy; <a href="https://jawg.io/">Jawg Maps</a>',
+                    maxZoom: 22
+                }).addTo(map);
+                
+                // NYC borough boundaries as a simple example
+                // In reality, you would load this from a GeoJSON file
+                var nycBoundary = {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Manhattan",
+                        "permeability": 4,
+                        "category": "Urban Core Cell"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[
+                            [-74.0479, 40.6829],
+                            [-74.0179, 40.7033],
+                            [-73.9975, 40.7151],
+                            [-73.9597, 40.7618],
+                            [-73.9221, 40.7948],
+                            [-73.9111, 40.8085],
+                            [-73.9232, 40.8185],
+                            [-73.9331, 40.8282],
+                            [-73.9438, 40.8505],
+                            [-73.9603, 40.8708],
+                            [-73.9771, 40.8780],
+                            [-73.9998, 40.7570],
+                            [-74.0057, 40.7061],
+                            [-74.0479, 40.6829]
+                        ]]
+                    }
+                };
+                
+                // Style for boundaries based on permeability
+                function boundaryStyle(feature) {
+                    var permeability = feature.properties.permeability || 5;
+                    var weight = 3 - (permeability * 0.2);
+                    var opacity = 0.4 + (permeability * 0.05);
+                    
+                    return {
+                        color: "#000000",
+                        weight: weight,
+                        opacity: opacity,
+                        fillOpacity: 0.05
+                    };
+                }
+                
+                // Add boundary to map
+                var boundary = L.geoJSON(nycBoundary, {
+                    style: boundaryStyle,
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(`
+                            <h3>${feature.properties.name}</h3>
+                            <p>Category: ${feature.properties.category}</p>
+                            <p>Permeability: ${feature.properties.permeability}/10</p>
+                        `);
+                    }
+                }).addTo(map);
+                
+                // Example receptor sites (in reality, load from GeoJSON)
+                var receptorSites = [
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Port of New York and New Jersey",
+                            "type": "port",
+                            "flowVolume": 8
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [-74.0431, 40.6642]
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Grand Central Terminal",
+                            "type": "station",
+                            "flowVolume": 7
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [-73.9772, 40.7527]
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "name": "JFK International Airport",
+                            "type": "airport",
+                            "flowVolume": 9
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [-73.7781, 40.6413]
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Holland Tunnel",
+                            "type": "highway",
+                            "flowVolume": 6
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [-74.0259, 40.7277]
+                        }
+                    }
+                ];
+                
+                // Create custom icons for receptor types
+                function getReceptorIcon(type, flowVolume) {
+                    var size = 10 + (flowVolume || 5);
+                    var className = 'receptor-icon ' + type;
+                    
+                    return L.divIcon({
+                        className: className,
+                        html: '<div class="receptor-dot"></div>',
+                        iconSize: [size, size],
+                        iconAnchor: [size/2, size/2]
+                    });
+                }
+                
+                // Add receptor markers
+                receptorSites.forEach(function(site) {
+                    var latlng = [site.geometry.coordinates[1], site.geometry.coordinates[0]];
+                    var icon = getReceptorIcon(site.properties.type, site.properties.flowVolume);
+                    
+                    var marker = L.marker(latlng, {icon: icon}).addTo(map);
+                    marker.bindPopup(`
+                        <h3>${site.properties.name}</h3>
+                        <p>Type: ${site.properties.type}</p>
+                        <p>Flow Volume: ${site.properties.flowVolume}/10</p>
+                    `);
+                });
+                
+                // Add legend
+                var legend = L.control({position: 'bottomright'});
+                
+                legend.onAdd = function(map) {
+                    var div = L.DomUtil.create('div', 'legend');
+                    div.innerHTML = `
+                        <h4>URBAN CELL ELEMENTS</h4>
+                        <div class="legend-item"><span style="display: inline-block; width: 20px; height: 3px; background-color: black; opacity: 0.8;"></span> Strong Boundary</div>
+                        <div class="legend-item"><span style="display: inline-block; width: 20px; height: 1px; background-color: black; opacity: 0.5;"></span> Permeable Boundary</div>
+                        <div class="legend-item"><span style="display: inline-block; width: 10px; height: 10px; background-color: #3498db; border-radius: 50%;"></span> Port</div>
+                        <div class="legend-item"><span style="display: inline-block; width: 10px; height: 10px; background-color: #e74c3c; border-radius: 50%;"></span> Airport</div>
+                        <div class="legend-item"><span style="display: inline-block; width: 10px; height: 10px; background-color: #2ecc71; border-radius: 50%;"></span> Station</div>
+                        <div class="legend-item"><span style="display: inline-block; width: 10px; height: 10px; background-color: #f39c12; border-radius: 50%;"></span> Highway</div>
+                    `;
+                    return div;
+                };
+                
+                legend.addTo(map);
+            });
+        </script>
+    </section>
+    
+    <section class="essay-section">
+        <h2>NEW YORK CITY AS A CELLULAR ORGANISM</h2>
+        
+        <div class="essay-content">
+            <p>New York City exemplifies a complex urban cell with multiple membrane types and receptor sites. Manhattan's island geography creates a natural cellular boundary, supplemented by infrastructural elements like bridges and tunnels that serve as controlled receptor sites. These boundaries are selectively permeable, regulating the flow of people, goods, and information.</p>
+            
+            <p>The city's metabolic efficiency is evident in its dense, vertical growth pattern—a cellular optimization that maximizes internal exchange while minimizing resource consumption per capita. The grid system functions as an internal circulation network, distributing resources throughout the cellular structure.</p>
+            
+            <p>Unlike more recently developed urban areas, NYC maintains a distinct cellular identity despite enormous growth. Its boundary conditions—rivers, harbors, and coastal edges—have forced the city to develop with a clear sense of its own limits, creating a cellular intensity that fosters cultural and economic vitality.</p>
+            
+            <p>When examining NYC through the lens of Urban Cell Theory, we observe how its defined boundaries have paradoxically enabled greater creative freedom within. The constraint of limited horizontal expansion has fostered vertical density and a uniquely intense urban experience. This illustrates a key principle: well-defined urban membranes don't restrict a city's potential but rather channel it toward more efficient, distinctive forms of expression.</p>
+        </div>
+    </section>
+    
+    <footer>
+        <p>© 2025 URBAN CELL THEORY PROJECT</p>
+    </footer>
+</body>
+</html>
